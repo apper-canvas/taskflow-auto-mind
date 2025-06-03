@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .glass-effect {
+    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .task-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  
+  .priority-high {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  }
+  
+  .priority-medium {
+    background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+  }
+  
+  .priority-low {
+    background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+  }
+}
+
+/* Custom toast styles */
+.Toastify__toast {
+  border-radius: 0.75rem;
+  font-family: 'Inter', sans-serif;
+}
+
+.Toastify__toast--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.Toastify__toast--error {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.Toastify__toast--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+/* Dark mode adjustments */
+.dark .glass-effect {
+  background: rgba(30, 41, 59, 0.3);
+  border: 1px solid rgba(100, 116, 139, 0.2);
+}
+
+/* Form focus styles */
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: #6366f1;
+}
