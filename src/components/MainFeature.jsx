@@ -108,10 +108,10 @@ const MainFeature = () => {
     setShowTaskForm(true)
   }
 
-  const handleDeleteTask = async (taskId) => {
+const handleDeleteTask = async (taskId) => {
     try {
-      await taskService.delete(taskId)
-      setTasks(prev => prev.filter(task => task.id !== taskId))
+      await taskService.deleteTask(taskId)
+      setTasks(prev => prev.filter(task => task.Id !== taskId))
       toast.success("Task deleted successfully!")
     } catch (err) {
       toast.error("Failed to delete task")
@@ -120,12 +120,17 @@ const MainFeature = () => {
 
   const handleToggleComplete = async (task) => {
     try {
-      const updatedTask = await taskService.update(task.id, {
-        ...task,
+      const taskData = {
+        title: task.title,
+        description: task.description || '',
+        due_date: task.due_date || null,
+        priority: task.priority,
         completed: !task.completed,
-        updatedAt: new Date().toISOString()
-      })
-      setTasks(prev => prev.map(t => t.id === task.id ? updatedTask : t))
+        category: task.category || null,
+        project_id: task.project_id || null
+      }
+      const updatedTask = await taskService.updateTask(task.Id, taskData)
+      setTasks(prev => prev.map(t => t.Id === task.Id ? updatedTask : t))
       toast.success(updatedTask.completed ? "Task completed!" : "Task reopened!")
     } catch (err) {
       toast.error("Failed to update task")

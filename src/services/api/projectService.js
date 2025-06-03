@@ -1,48 +1,185 @@
-import projectData from '../mockData/projects.json'
+const { ApperClient } = window.ApperSDK;
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms))
+const apperClient = new ApperClient({
+  apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+  apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+});
 
-let projects = [...projectData]
+// All project fields from the provided JSON
+const projectFields = [
+  'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
+  'description', 'color'
+];
 
-export const getAll = async () => {
-  await delay(250)
-  return [...projects]
-}
+// Only updateable fields for create/update operations
+const updateableFields = [
+  'Name', 'Tags', 'description', 'color'
+];
 
-export const getById = async (id) => {
-  await delay(200)
-  const project = projects.find(p => p.id === id)
-  if (!project) throw new Error('Project not found')
-  return { ...project }
-}
+export const fetchAllProjects = async (filters = {}) => {
+  try {
+    const params = {
+      fields: projectFields,
+      orderBy: [
+        {
+          fieldName: "Name",
+          SortType: "ASC"
+        }
+      ]
+    };
 
-export const create = async (projectData) => {
-  await delay(350)
-  const newProject = {
-    ...projectData,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString()
+    if (filters.where) {
+      params.where = filters.where;
+    }
+
+    const response = await apperClient.fetchRecords('project', params);
+    
+    if (!response || !response.data || response.data.length === 0) {
+      return [];
+    }
+
+    return response.data.map(project => ({
+      Id: project.Id,
+      id: project.Id, // Keep both for compatibility
+      name: project.Name || '',
+      description: project.description || '',
+      color: project.color || '#6366f1',
+      createdAt: project.CreatedOn || new Date().toISOString()
+    }));
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    throw new Error("Failed to fetch projects");
   }
-  projects.unshift(newProject)
-  return { ...newProject }
-}
+};
 
-export const update = async (id, updates) => {
-  await delay(300)
-  const index = projects.findIndex(p => p.id === id)
-  if (index === -1) throw new Error('Project not found')
-  
-  projects[index] = { ...projects[index], ...updates }
-  return { ...projects[index] }
-}
+export const getProjectById = async (projectId) => {
+  try {
+    const params = {
+      fields: projectFields
+    };
 
-export const delete_ = async (id) => {
-  await delay(250)
-  const index = projects.findIndex(p => p.id === id)
-  if (index === -1) throw new Error('Project not found')
-  
-  projects.splice(index, 1)
-  return true
-}
+    const response = await apperClient.getRecordById('project', projectId, params);
+    
+    if (!response || !response.data) {
+      throw new Error("Project not found");
+    }
 
-export { delete_ as delete }
+    const project = response.data;
+    return {
+      Id: project.Id,
+      id: project.Id,
+      name: project.Name || '',
+      description: project.description || '',
+      color: project.color || '#6366f1',
+      createdAt: project.CreatedOn || new Date().toISOString()
+    };
+  } catch (error) {
+    console.error(`Error fetching project with ID ${projectId}:`, error);
+    throw new Error("Failed to fetch project");
+  }
+};
+
+export const createProject = async (projectData) => {
+  try {
+    const filteredData = {};
+    updateableFields.forEach(field => {
+      if (projectData[field] !== undefined && projectData[field] !== null) {
+        filteredData[field] = projectData[field];
+      }
+    });
+
+    // Set default Name field if not provided
+    if (!filteredData.Name && projectData.name) {
+      filteredData.Name = projectData.name;
+    }
+
+    const params = {
+      records: [filteredData]
+    };
+
+    const response = await apperClient.createRecord('project', params);
+    
+    if (response && response.success && response.results && response.results[0] && response.results[0].success) {
+      const createdProject = response.results[0].data;
+      return {
+        Id: createdProject.Id,
+        id: createdProject.Id,
+        name: createdProject.Name || '',
+        description: createdProject.description || '',
+        color: createdProject.color || '#6366f1',
+        createdAt: createdProject.CreatedOn || new Date().toISOString()
+      };
+    } else {
+      throw new Error("Failed to create project");
+    }
+  } catch (error) {
+    console.error("Error creating project:", error);
+    throw new Error("Failed to create project");
+  }
+};
+
+export const updateProject = async (projectId, projectData) => {
+  try {
+    const filteredData = { Id: projectId };
+    updateableFields.forEach(field => {
+      if (projectData[field] !== undefined && projectData[field] !== null) {
+        filteredData[field] = projectData[field];
+      }
+    });
+
+    // Set default Name field if not provided
+    if (!filteredData.Name && projectData.name) {
+      filteredData.Name = projectData.name;
+    }
+
+    const params = {
+      records: [filteredData]
+    };
+
+    const response = await apperClient.updateRecord('project', params);
+    
+    if (response && response.success && response.results && response.results[0] && response.results[0].success) {
+      const updatedProject = response.results[0].data;
+      return {
+        Id: updatedProject.Id,
+        id: updatedProject.Id,
+        name: updatedProject.Name || '',
+        description: updatedProject.description || '',
+        color: updatedProject.color || '#6366f1',
+        createdAt: updatedProject.CreatedOn || new Date().toISOString()
+      };
+    } else {
+      throw new Error("Failed to update project");
+    }
+  } catch (error) {
+    console.error("Error updating project:", error);
+    throw new Error("Failed to update project");
+  }
+};
+
+export const deleteProject = async (projectId) => {
+  try {
+    const params = {
+      RecordIds: [projectId]
+    };
+
+    const response = await apperClient.deleteRecord('project', params);
+    
+    if (response && response.success) {
+      return true;
+    } else {
+      throw new Error("Failed to delete project");
+    }
+  } catch (error) {
+    console.error("Error deleting project:", error);
+    throw new Error("Failed to delete project");
+  }
+};
+
+// Legacy exports for compatibility
+export const getAll = fetchAllProjects;
+export const getById = getProjectById;
+export const create = createProject;
+export const update = updateProject;
+export const delete_ = deleteProject;
+export { delete_ as delete };
