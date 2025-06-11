@@ -8,12 +8,12 @@ const apperClient = new ApperClient({
 // All task fields from the provided JSON
 const taskFields = [
   'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
-  'title', 'description', 'due_date', 'priority', 'completed', 'category', 'project_id'
+  'title', 'description', 'due_date', 'priority', 'completed', 'category', 'created_at', 'updated_at', 'project_id'
 ];
 
 // Only updateable fields for create/update operations
 const updateableFields = [
-  'Name', 'Tags', 'title', 'description', 'due_date', 'priority', 'completed', 'category', 'project_id'
+  'Name', 'Tags', 'title', 'description', 'due_date', 'priority', 'completed', 'category', 'created_at', 'updated_at', 'project_id'
 ];
 
 export const fetchAllTasks = async (filters = {}) => {
@@ -93,20 +93,33 @@ export const getTaskById = async (taskId) => {
     throw new Error("Failed to fetch task");
   }
 };
-
 export const createTask = async (taskData) => {
   try {
-    // Filter to only include updateable fields
+    // Filter to only include updateable fields and transform UI format to DB format
     const filteredData = {};
-    updateableFields.forEach(field => {
-      if (taskData[field] !== undefined && taskData[field] !== null) {
-        filteredData[field] = taskData[field];
-      }
-    });
-
-    // Set default Name field if not provided
-    if (!filteredData.Name && filteredData.title) {
-      filteredData.Name = filteredData.title;
+    
+    // Map UI fields to database fields
+    if (taskData.title !== undefined && taskData.title !== null) {
+      filteredData.Name = taskData.title;
+      filteredData.title = taskData.title;
+    }
+    if (taskData.description !== undefined && taskData.description !== null) {
+      filteredData.description = taskData.description;
+    }
+    if (taskData.dueDate !== undefined && taskData.dueDate !== null) {
+      filteredData.due_date = taskData.dueDate;
+    }
+    if (taskData.priority !== undefined && taskData.priority !== null) {
+      filteredData.priority = taskData.priority;
+    }
+    if (taskData.completed !== undefined && taskData.completed !== null) {
+      filteredData.completed = Boolean(taskData.completed);
+    }
+    if (taskData.category !== undefined && taskData.category !== null) {
+      filteredData.category = taskData.category;
+    }
+    if (taskData.projectId !== undefined && taskData.projectId !== null) {
+      filteredData.project_id = parseInt(taskData.projectId) || taskData.projectId;
     }
 
     const params = {
@@ -143,17 +156,37 @@ export const createTask = async (taskData) => {
 
 export const updateTask = async (taskId, taskData) => {
   try {
-    // Filter to only include updateable fields plus Id
+    // Filter to only include updateable fields plus Id and transform UI format to DB format
     const filteredData = { Id: taskId };
-    updateableFields.forEach(field => {
-      if (taskData[field] !== undefined && taskData[field] !== null) {
-        filteredData[field] = taskData[field];
-      }
-    });
-
-    // Set default Name field if not provided
-    if (!filteredData.Name && filteredData.title) {
-      filteredData.Name = filteredData.title;
+    
+    // Map UI fields to database fields
+    if (taskData.title !== undefined && taskData.title !== null) {
+      filteredData.Name = taskData.title;
+      filteredData.title = taskData.title;
+    }
+    if (taskData.description !== undefined && taskData.description !== null) {
+      filteredData.description = taskData.description;
+    }
+    if (taskData.dueDate !== undefined && taskData.dueDate !== null) {
+      filteredData.due_date = taskData.dueDate;
+    }
+    if (taskData.due_date !== undefined && taskData.due_date !== null) {
+      filteredData.due_date = taskData.due_date;
+    }
+    if (taskData.priority !== undefined && taskData.priority !== null) {
+      filteredData.priority = taskData.priority;
+    }
+    if (taskData.completed !== undefined && taskData.completed !== null) {
+      filteredData.completed = Boolean(taskData.completed);
+    }
+    if (taskData.category !== undefined && taskData.category !== null) {
+      filteredData.category = taskData.category;
+    }
+    if (taskData.projectId !== undefined && taskData.projectId !== null) {
+      filteredData.project_id = parseInt(taskData.projectId) || taskData.projectId;
+    }
+    if (taskData.project_id !== undefined && taskData.project_id !== null) {
+      filteredData.project_id = parseInt(taskData.project_id) || taskData.project_id;
     }
 
     const params = {

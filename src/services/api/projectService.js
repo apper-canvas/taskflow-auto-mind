@@ -8,12 +8,12 @@ const apperClient = new ApperClient({
 // All project fields from the provided JSON
 const projectFields = [
   'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
-  'description', 'color'
+  'description', 'color', 'created_at'
 ];
 
 // Only updateable fields for create/update operations
 const updateableFields = [
-  'Name', 'Tags', 'description', 'color'
+  'Name', 'Tags', 'description', 'color', 'created_at'
 ];
 
 export const fetchAllProjects = async (filters = {}) => {

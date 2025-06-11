@@ -63,12 +63,12 @@ const MainFeature = () => {
         ...taskForm,
         completed: false,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+updatedAt: new Date().toISOString()
       }
-
+      
       if (editingTask) {
-        const updatedTask = await taskService.update(editingTask.id, taskData)
-        setTasks(prev => prev.map(task => task.id === editingTask.id ? updatedTask : task))
+        const updatedTask = await taskService.update(editingTask.Id || editingTask.id, taskData)
+        setTasks(prev => prev.map(task => (task.Id || task.id) === (editingTask.Id || editingTask.id) ? updatedTask : task))
         toast.success("Task updated successfully!")
       } else {
         const newTask = await taskService.create(taskData)
@@ -93,25 +93,24 @@ const MainFeature = () => {
     })
     setEditingTask(null)
     setShowTaskForm(false)
-  }
+}
 
   const handleEditTask = (task) => {
     setTaskForm({
       title: task.title,
       description: task.description || '',
-      dueDate: task.dueDate || '',
+      dueDate: task.dueDate || task.due_date || '',
       priority: task.priority,
       category: task.category || '',
-      projectId: task.projectId || ''
+      projectId: task.projectId || task.project_id || ''
     })
     setEditingTask(task)
     setShowTaskForm(true)
   }
-
 const handleDeleteTask = async (taskId) => {
     try {
-      await taskService.deleteTask(taskId)
-      setTasks(prev => prev.filter(task => task.Id !== taskId))
+      await taskService.delete(taskId)
+      setTasks(prev => prev.filter(task => (task.Id || task.id) !== taskId))
       toast.success("Task deleted successfully!")
     } catch (err) {
       toast.error("Failed to delete task")
@@ -123,14 +122,14 @@ const handleDeleteTask = async (taskId) => {
       const taskData = {
         title: task.title,
         description: task.description || '',
-        due_date: task.due_date || null,
+        dueDate: task.dueDate || task.due_date || null,
         priority: task.priority,
         completed: !task.completed,
         category: task.category || null,
-        project_id: task.project_id || null
+        projectId: task.projectId || task.project_id || null
       }
-      const updatedTask = await taskService.updateTask(task.Id, taskData)
-      setTasks(prev => prev.map(t => t.Id === task.Id ? updatedTask : t))
+      const updatedTask = await taskService.update(task.Id || task.id, taskData)
+      setTasks(prev => prev.map(t => (t.Id || t.id) === (task.Id || task.id) ? updatedTask : t))
       toast.success(updatedTask.completed ? "Task completed!" : "Task reopened!")
     } catch (err) {
       toast.error("Failed to update task")
@@ -154,12 +153,12 @@ const handleDeleteTask = async (taskId) => {
     if (isTomorrow(date)) return 'tomorrow'
     return 'future'
   }
+}
 
   const filteredAndSortedTasks = tasks
-    .filter(task => {
       if (filter === 'completed') return task.completed
       if (filter === 'pending') return !task.completed
-      if (filter === 'overdue') return getDateStatus(task.dueDate) === 'overdue' && !task.completed
+      if (filter === 'overdue') return getDateStatus(task.dueDate || task.due_date) === 'overdue' && !task.completed
       return true
     })
     .filter(task => 
@@ -172,10 +171,12 @@ const handleDeleteTask = async (taskId) => {
         return priorityOrder[b.priority] - priorityOrder[a.priority]
       }
       if (sortBy === 'dueDate') {
-        if (!a.dueDate && !b.dueDate) return 0
-        if (!a.dueDate) return 1
-        if (!b.dueDate) return -1
-        return new Date(a.dueDate) - new Date(b.dueDate)
+        const aDueDate = a.dueDate || a.due_date
+        const bDueDate = b.dueDate || b.due_date
+        if (!aDueDate && !bDueDate) return 0
+        if (!aDueDate) return 1
+        if (!bDueDate) return -1
+        return new Date(aDueDate) - new Date(bDueDate)
       }
       if (sortBy === 'created') {
         return new Date(b.createdAt) - new Date(a.createdAt)
@@ -302,11 +303,11 @@ const handleDeleteTask = async (taskId) => {
                         <select
                           value={taskForm.category}
                           onChange={(e) => setTaskForm(prev => ({ ...prev, category: e.target.value }))}
-                          className="w-full px-4 py-3 bg-white dark:bg-surface-700 border border-surface-300 dark:border-surface-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+className="w-full px-4 py-3 bg-white dark:bg-surface-700 border border-surface-300 dark:border-surface-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                         >
                           <option value="">Select category</option>
                           {categories?.map(category => (
-                            <option key={category.id} value={category.name}>
+                            <option key={category.Id || category.id} value={category.name}>
                               {category.name}
                             </option>
                           ))}
@@ -320,11 +321,11 @@ const handleDeleteTask = async (taskId) => {
                         <select
                           value={taskForm.projectId}
                           onChange={(e) => setTaskForm(prev => ({ ...prev, projectId: e.target.value }))}
-                          className="w-full px-4 py-3 bg-white dark:bg-surface-700 border border-surface-300 dark:border-surface-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
+className="w-full px-4 py-3 bg-white dark:bg-surface-700 border border-surface-300 dark:border-surface-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
                         >
                           <option value="">Select project</option>
                           {projects?.map(project => (
-                            <option key={project.id} value={project.id}>
+                            <option key={project.Id || project.id} value={project.Id || project.id}>
                               {project.name}
                             </option>
                           ))}
@@ -429,15 +430,15 @@ const handleDeleteTask = async (taskId) => {
               </p>
             </motion.div>
           ) : (
-            <div className="space-y-3">
+<div className="space-y-3">
               <AnimatePresence>
                 {filteredAndSortedTasks.map((task) => {
-                  const dateStatus = getDateStatus(task.dueDate)
-                  const project = projects?.find(p => p.id === task.projectId)
+                  const dateStatus = getDateStatus(task.dueDate || task.due_date)
+                  const project = projects?.find(p => (p.id || p.Id) === (task.projectId || task.project_id))
                   
                   return (
                     <motion.div
-                      key={task.id}
+                      key={task.Id || task.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -100 }}
@@ -486,10 +487,10 @@ const handleDeleteTask = async (taskId) => {
                             }`}>
                               {task.description}
                             </p>
-                          )}
+)}
 
                           <div className="flex flex-wrap items-center gap-3 text-xs">
-                            {task.dueDate && (
+                            {(task.dueDate || task.due_date) && (
                               <div className={`flex items-center space-x-1 px-2 py-1 rounded-full ${
                                 dateStatus === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                 dateStatus === 'today' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
@@ -501,7 +502,7 @@ const handleDeleteTask = async (taskId) => {
                                   {dateStatus === 'today' ? 'Today' :
                                    dateStatus === 'tomorrow' ? 'Tomorrow' :
                                    dateStatus === 'overdue' ? 'Overdue' :
-                                   format(new Date(task.dueDate), 'MMM d')}
+                                   format(new Date(task.dueDate || task.due_date), 'MMM d')}
                                 </span>
                               </div>
                             )}
@@ -527,10 +528,10 @@ const handleDeleteTask = async (taskId) => {
                             onClick={() => handleEditTask(task)}
                             className="p-2 text-surface-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-all duration-200"
                           >
-                            <ApperIcon name="Edit" className="w-4 h-4" />
+<ApperIcon name="Edit" className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteTask(task.id)}
+                            onClick={() => handleDeleteTask(task.Id || task.id)}
                             className="p-2 text-surface-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
                           >
                             <ApperIcon name="Trash2" className="w-4 h-4" />
